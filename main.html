@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingdoms of Fire and Ice</title>
+    <style>
+        :root {
+            --fire-grad: radial-gradient(circle, #e67e22, #c0392b, #4a0000);
+            --ice-grad: radial-gradient(circle, #81ecec, #0984e3, #2f3640);
+            --neutral-grad: radial-gradient(circle, #485460, #1e272e);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background 1s ease;
+            color: white;
+            background: var(--neutral-grad);
+        }
+
+        /* Background States triggered by JS */
+        body.fire-theme { background: var(--fire-grad); }
+        body.ice-theme { background: var(--ice-grad); }
+        body.neutral-theme { background: var(--neutral-grad); }
+
+        #game-card {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(15px);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h1 { font-size: 1.8rem; margin-bottom: 1rem; }
+        p { line-height: 1.6; font-size: 1.1rem; margin-bottom: 2rem; }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-option:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .controls {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-control {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+
+        .btn-control:hover { color: white; }
+
+        /* Animation for text change */
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="neutral-theme">
+
+    <div id="game-card" class="fade-in">
+        <h1 id="title">The Divided World</h1>
+        <p id="story-text">Loading destiny...</p>
+        
+        <div id="options" class="options-container">
+            </div>
+
+        <div class="controls">
+            <button class="btn-control" onclick="goBack()">⬅ Back</button>
+            <button class="btn-control" onclick="restart()">🔄 Restart</button>
+        </div>
+    </div>
+
+    <script>
+        // Story Data
+        const story = {
+            Inicio: {
+                title: "The Divided World",
+                text: "The world is divided into two great realms: The Kingdom of Fire 🔥 and the Kingdom of Ice ❄️. Both have been at war for centuries... but today, you decide your destiny.",
+                theme: "neutral",
+                options: [
+                    { text: "Join the Kingdom of Fire", next: "Fuego" },
+                    { text: "Join the Kingdom of Ice", next: "Hielo" }
+                ]
+            },
+            Fuego: {
+                title: "Kingdom of Fire",
+                text: "You have chosen the Kingdom of Fire. Brave and powerful warriors dominate the flames. Your team is ready: Ignis (Leader), Pyra (Archer), and Vulcan (Tank).",
+                theme: "fire",
+                options: [
+                    { text: "Go to Battle", next: "BatallaFuego" },
+                    { text: "Explore the Kingdom", next: "ExplorarFuego" }
+                ]
+            },
+            Hielo: {
+                title: "Kingdom of Ice",
+                text: "You have chosen the Kingdom of Ice. Cold and precise strategists control the frost. Your team is ready: Glacia (Leader), Frost (Assassin), and Boreal (Mage).",
+                theme: "ice",
+                options: [
+                    { text: "Go to Battle", next: "BatallaHielo" },
+                    { text: "Explore the Kingdom", next: "ExplorarHielo" }
+                ]
+            },
+            ExplorarFuego: {
+                title: "Ancient Secrets",
+                text: "You discover an ancient scroll talking about a possible alliance with the Kingdom of Ice...",
+                theme: "fire",
+                options: [
+                    { text: "Go to Battle", next: "BatallaFuego" },
+                    { text: "Seek Peace", next: "Union" }
+                ]
+            },
+            ExplorarHielo: {
+                title: "The Prophecy",
+                text: "You find a prophecy: 'Only united, Fire and Ice shall save the world.'",
+                theme: "ice",
+                options: [
+                    { text: "Go to Battle", next: "BatallaHielo" },
+                    { text: "Seek Peace", next: "Union" }
+                ]
+            },
+            BatallaFuego: {
+                title: "The Frontlines",
+                text: "Your team fights with raw strength, but the enemy is overwhelming.",
+                theme: "fire",
+                options: [
+                    { text: "Attack recklessly", next: "FinFuegoMalo" },
+                    { text: "Think of another option", next: "Union" }
+                ]
+            },
+            BatallaHielo: {
+                title: "Strategic Combat",
+                text: "Your team fights strategically, but the war never ends.",
+                theme: "ice",
+                options: [
+                    { text: "Keep fighting", next: "FinHieloMalo" },
+                    { text: "Try to negotiate", next: "Union" }
+                ]
+            },
+            Union: {
+                title: "Neutral Ground",
+                text: "Both kingdoms meet in a neutral field. The fate of the world is in your hands... Where do you come from?",
+                theme: "neutral",
+                options: [
+                    { text: "I am from the Kingdom of Fire", next: "UnionFuego" },
+                    { text: "I am from the Kingdom of Ice", next: "UnionHielo" }
+                ]
+            },
+            UnionFuego: {
+                title: "TRUE ENDING: KINGDOM UNION",
+                text: "As a representative of Fire, you propose an alliance. After a tense conversation... Ice accepts. 🔥 + ❄️ = 🌍. A new balanced world is created.",
+                theme: "fire",
+                options: []
+            },
+            UnionHielo: {
+                title: "TRUE ENDING: ETERNAL PEACE",
+                text: "As a representative of Ice, you propose a truce. Fire hesitates... but finally accepts. ❄️ + 🔥 = 🌍. The war ends and a new era is born.",
+                theme: "ice",
+                options: []
+            },
+            FinFuegoMalo: {
+                title: "ENDING: EMPTY VICTORY",
+                text: "The Kingdom of Fire wins the battle... but the world is left in ruins.",
+                theme: "fire",
+                options: []
+            },
+            FinHieloMalo: {
+                title: "ENDING: ETERNAL SOLITUDE",
+                text: "The Kingdom of Ice dominates... but everything remains frozen forever.",
+                theme: "ice",
+                options: []
+            }
+        };
+
+        let historyStack = ["Inicio"];
+
+        function renderScene() {
+            const currentKey = historyStack[historyStack.length - 1];
+            const scene = story[currentKey];
+            const container = document.getElementById('game-card');
+            
+            // Apply theme classes to body
+            document.body.className = `${scene.theme}-theme`;
+
+            // Update content
+            document.getElementById('title').innerText = scene.title;
+            document.getElementById('story-text').innerText = scene.text;
+
+            // Clear and render options
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            scene.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerText = opt.text;
+                btn.onclick = () => {
+                    historyStack.push(opt.next);
+                    renderScene();
+                };
+                optionsDiv.appendChild(btn);
+            });
+
+            // Re-trigger animation
+            container.classList.remove('fade-in');
+            void container.offsetWidth; // Trigger reflow
+            container.classList.add('fade-in');
+        }
+
+        function goBack() {
+            if (historyStack.length > 1) {
+                historyStack.pop();
+                renderScene();
+            }
+        }
+
+        function restart() {
+            historyStack = ["Inicio"];
+            renderScene();
+        }
+
+        // Start game
+        renderScene();
+    </script>
+</body>
+</html>
